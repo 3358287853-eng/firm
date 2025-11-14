@@ -10,12 +10,6 @@
       "maxDuration": 10
     }
   },
-  "builds": [
-    {
-      "src": "frontend/**/*.html",
-      "use": "@vercel/static"
-    }
-  ],
   "env": {
     "PYTHONUNBUFFERED": "1"
   }
