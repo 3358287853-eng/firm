@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>数据挖掘算法平台 - 专业数据分析工具</title>
+    <meta name="description" content="免费在线数据挖掘算法平台，支持决策树、K近邻、关联分析、K-means聚类和DBSCAN等多种算法，上传数据即可进行分析。">
+    <meta name="keywords" content="数据挖掘,算法平台,机器学习,数据分析,决策树,K近邻,关联分析,聚类分析">
+    <meta name="author" content="数据挖掘算法平台">
+    
+    <!-- 外部依赖（CDN） -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #3498db;
+            --primary-dark: #2980b9;
+            --secondary: #2c3e50;
+            --accent: #1abc9c;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --gray: #95a5a6;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', Arial, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: var(--light);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        /* 导航栏样式 */
+        .navbar {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+        
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .nav-link {
+            color: var(--light);
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 700;
+        }
+        
+        .header p {
+            color: var(--gray);
+            font-size: 1.1rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .watermark {
+            position: absolute;
+            bottom: 15px;
+            right: 20px;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.4);
+            font-style: italic;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .card h2 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: var(--light);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .card h2 i {
+            color: var(--accent);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--light);
+        }
+        
+        input, select, button {
+            width: 100%;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            color: var(--light);
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            background: rgba(0, 0, 0, 0.4);
+            box-shadow: 0 0 0 2px var(--primary);
+        }
+        
+        select option {
+            background: rgba(0, 0, 0, 0.8);
+            color: var(--light);
+            padding: 10px;
+        }
+        
+        button {
+            background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        button:hover {
+            background: linear-gradient(90deg, var(--primary-dark), var(--primary));
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .file-upload-area {
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .file-upload-area:hover {
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .file-upload-area i {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+        
+        .data-preview {
+            max-height: 300px;
+            overflow: auto;
+            margin-top: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+        }
+        
+        th {
+            background: rgba(0, 0, 0, 0.3);
+            font-weight: 600;
+            color: var(--accent);
+            position: sticky;
+            top: 0;
+        }
+        
+        tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .algorithm-section {
+            display: none;
+        }
+        
+        .active {
+            display: block;
+        }
+        
+        .tab-buttons {
+            display: flex;
+            margin-bottom: 25px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 5px;
+            flex-wrap: wrap;
+        }
+        
+        .tab-button {
+            flex: 1;
+            padding: 12px 15px;
+            text-align: center;
+            background: transparent;
+            border: none;
+            color: var(--light);
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s;
+            min-width: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .tab-button.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .tab-button:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .results {
+            margin-top: 20px;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 350px;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 15px;
+        }
+        
+        .algorithm-params {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .status-message {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .success {
+            background: rgba(46, 204, 113, 0.2);
+            border-left: 4px solid var(--success);
+        }
+        
+        .error {
+            background: rgba(231, 76, 60, 0.2);
+            border-left: 4px solid var(--danger);
+        }
+        
+        .info {
+            background: rgba(52, 152, 219, 0.2);
+            border-left: 4px solid var(--primary);
+        }
+        
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+        
+        @media (max-width: 992px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+            
+            .tab-buttons {
+                flex-direction: column;
+            }
+            
+            .nav-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+        
+        .metric-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.08);
+        }
+        
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 10px 0;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .metric-label {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: var(--gray);
+            font-size: 0.9rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .search-container {
+            display: flex;
+            margin-bottom: 25px;
+            gap: 10px;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            color: var(--light);
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .search-input:focus {
+            outline: none;
+            background: rgba(0, 0, 0, 0.4);
+            box-shadow: 0 0 0 2px var(--primary);
+        }
+        
+        .search-button {
+            padding: 12px 25px;
+            background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            width: auto;
+            white-space: nowrap;
+        }
+        
+        .search-button:hover {
+            background: linear-gradient(90deg, var(--primary-dark), var(--primary));
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .app-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        
+        .app-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .app-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .action-button {
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--light);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            width: auto;
+        }
+        
+        .action-button:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        .file-info {
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .file-info p {
+            margin: 5px 0;
+        }
+        
+        /* 网站介绍部分 */
+        .intro-section {
+            padding: 40px 0;
+            text-align: center;
+        }
+        
+        .intro-title {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .intro-text {
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto 30px;
+            color: var(--gray);
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 40px;
+        }
+        
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+        
+        .feature-title {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: var(--light);
+        }
+        
+        .feature-desc {
+            color: var(--gray);
+            line-height: 1.6;
+        }
+        
+        .cta-section {
+            text-align: center;
+            padding: 60px 0;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* 移动端优化 */
+        @media (max-width: 768px) {
+            body {
+                font-size: 14px;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .card {
+                padding: 15px;
+            }
+            
+            .tab-buttons {
+                flex-direction: column;
+            }
+            
+            .tab-button {
+                min-width: auto;
+            }
+            
+            button, .tab-button {
+                min-height: 44px;
+            }
+            
+            .data-preview {
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            .app-bar {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .search-container {
+                flex-direction: column;
+            }
+            
+            .search-button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo">
+                <i class="fas fa-chart-line"></i> 数据挖掘算法平台
+            </a>
+            <div class="nav-links">
+                <a href="#features" class="nav-link">功能</a>
+                <a href="#platform" class="nav-link">平台</a>
+                <a href="#about" class="nav-link">关于</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 网站介绍部分 -->
+    <section class="intro-section">
+        <div class="container">
+            <h1 class="intro-title">专业数据挖掘算法平台</h1>
+            <p class="intro-text">免费在线数据挖掘工具，支持多种机器学习算法，无需编程经验，上传数据即可获得专业分析结果</p>
+            <a href="#platform" class="cta-button">立即体验</a>
+            
+            <div class="features" id="features">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-project-diagram"></i>
+                    </div>
+                    <h3 class="feature-title">决策树分析</h3>
+                    <p class="feature-desc">使用决策树算法进行分类和回归分析，直观展示决策路径和规则。</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-sitemap"></i>
+                    </div>
+                    <h3 class="feature-title">K近邻分类</h3>
+                    <p class="feature-desc">基于实例的学习算法，根据邻近样本进行分类预测。</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-link"></i>
+                    </div>
+                    <h3 class="feature-title">关联分析</h3>
+                    <p class="feature-desc">发现数据中的关联规则，揭示变量之间的内在联系。</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-object-group"></i>
+                    </div>
+                    <h3 class="feature-title">K-means聚类</h3>
+                    <p class="feature-desc">基于距离的聚类算法，将数据分组为有意义的簇。</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-dot-circle"></i>
+                    </div>
+                    <h3 class="feature-title">DBSCAN聚类</h3>
+                    <p class="feature-desc">基于密度的聚类算法，能够发现任意形状的簇并识别噪声点。</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <h3 class="feature-title">可视化结果</h3>
+                    <p class="feature-desc">直观的图表和指标展示，帮助您理解分析结果。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 数据挖掘平台部分 -->
+    <section id="platform" class="platform-section">
+        <div class="container">
+            <div class="app-bar">
+                <div class="app-title">数据挖掘算法平台</div>
+                <div class="app-actions">
+                    <button class="action-button" id="saveSession">
+                        <i class="fas fa-save"></i> 保存会话
+                    </button>
+                    <button class="action-button" id="loadSession">
+                        <i class="fas fa-folder-open"></i> 加载会话
+                    </button>
+                </div>
+            </div>
+            
+            <div class="search-container">
+                <input type="text" class="search-input" id="searchInput" placeholder="搜索算法、功能或帮助...">
+                <button class="search-button" id="searchButton">
+                    <i class="fas fa-search"></i> 搜索
+                </button>
+            </div>
+            
+            <div class="header">
+                <h1><i class="fas fa-chart-line"></i> 数据挖掘算法平台</h1>
+                <p>上传数据集，选择算法，获取洞察</p>
+                <div class="watermark">学号: 2306104061 姓名: 唐旗东</div>
+            </div>
+
+            <div class="grid-2">
+                <div>
+                    <div class="card">
+                        <h2><i class="fas fa-upload"></i> 数据上传</h2>
+                        <div class="file-upload-area" id="fileDropArea">
+                            <i class="fas fa-file-excel"></i>
+                            <h3>上传数据集文件</h3>
+                            <p>支持 CSV、Excel 格式</p>
+                            <p>拖放文件到此处或点击选择</p>
+                            <input type="file" id="fileInput" accept=".csv,.xlsx,.xls,.txt" style="display: none;">
+                        </div>
+                        <button id="uploadBtn"><i class="fas fa-cloud-upload-alt"></i> 上传数据</button>
+                        <div id="fileInfo" class="file-info" style="display: none;"></div>
+                        <div id="dataPreview" class="data-preview"></div>
+                    </div>
+
+                    <div class="card">
+                        <h2><i class="fas fa-sliders-h"></i> 算法选择与参数配置</h2>
+                        <div class="tab-buttons">
+                            <button class="tab-button active" data-algorithm="decision-tree">
+                                <i class="fas fa-project-diagram"></i> 决策树
+                            </button>
+                            <button class="tab-button" data-algorithm="knn">
+                                <i class="fas fa-sitemap"></i> K近邻分类
+                            </button>
+                            <button class="tab-button" data-algorithm="association">
+                                <i class="fas fa-link"></i> 关联分析
+                            </button>
+                            <button class="tab-button" data-algorithm="kmeans">
+                                <i class="fas fa-object-group"></i> K-means聚类
+                            </button>
+                            <button class="tab-button" data-algorithm="dbscan">
+                                <i class="fas fa-dot-circle"></i> DBSCAN
+                            </button>
+                        </div>
+
+                        <!-- 决策树参数 -->
+                        <div id="decision-tree" class="algorithm-section active">
+                            <div class="algorithm-params">
+                                <div class="form-group">
+                                    <label for="dt-target">目标变量列</label>
+                                    <select id="dt-target">
+                                        <option value="">-- 请先上传数据 --</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="dt-max-depth">最大深度</label>
+                                    <input type="number" id="dt-max-depth" value="5" min="1">
+                                </div>
+                                <div class="form-group">
+                                    <label for="dt-criterion">分裂标准</label>
+                                    <select id="dt-criterion">
+                                        <option value="gini">基尼系数</option>
+                                        <option value="entropy">信息增益</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button id="runDecisionTree"><i class="fas fa-play"></i> 运行决策树算法</button>
+                        </div>
+
+                        <!-- K近邻分类参数 -->
+                        <div id="knn" class="algorithm-section">
+                            <div class="algorithm-params">
+                                <div class="form-group">
+                                    <label for="knn-target">目标变量列</label>
+                                    <select id="knn-target">
+                                        <option value="">-- 请先上传数据 --</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="knn-k">K值</label>
+                                    <input type="number" id="knn-k" value="5" min="1">
+                                </div>
+                                <div class="form-group">
+                                    <label for="knn-weights">权重</label>
+                                    <select id="knn-weights">
+                                        <option value="uniform">统一权重</option>
+                                        <option value="distance">距离权重</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button id="runKNN"><i class="fas fa-play"></i> 运行K近邻算法</button>
+                        </div>
+
+                        <!-- 关联分析参数 -->
+                        <div id="association" class="algorithm-section">
+                            <div class="algorithm-params">
+                                <div class="form-group">
+                                    <label for="assoc-min-support">最小支持度</label>
+                                    <input type="number" id="assoc-min-support" value="0.1" min="0" max="1" step="0.01">
+                                </div>
+                                <div class="form-group">
+                                    <label for="assoc-min-confidence">最小置信度</label>
+                                    <input type="number" id="assoc-min-confidence" value="0.5" min="0" max="1" step="0.01">
+                                </div>
+                            </div>
+                            <button id="runAssociation"><i class="fas fa-play"></i> 运行关联分析</button>
+                        </div>
+
+                        <!-- K-means聚类参数 -->
+                        <div id="kmeans" class="algorithm-section">
+                            <div class="algorithm-params">
+                                <div class="form-group">
+                                    <label for="kmeans-k">聚类数量(K)</label>
+                                    <input type="number" id="kmeans-k" value="3" min="2">
+                                </div>
+                                <div class="form-group">
+                                    <label for="kmeans-max-iter">最大迭代次数</label>
+                                    <input type="number" id="kmeans-max-iter" value="100" min="1">
+                                </div>
+                            </div>
+                            <button id="runKMeans"><i class="fas fa-play"></i> 运行K-means算法</button>
+                        </div>
+
+                        <!-- DBSCAN参数 -->
+                        <div id="dbscan" class="algorithm-section">
+                            <div class="algorithm-params">
+                                <div class="form-group">
+                                    <label for="dbscan-eps">邻域半径(eps)</label>
+                                    <input type="number" id="dbscan-eps" value="0.5" min="0" step="0.1">
+                                </div>
+                                <div class="form-group">
+                                    <label for="dbscan-min-samples">最小样本数</label>
+                                    <input type="number" id="dbscan-min-samples" value="5" min="1">
+                                </div>
+                            </div>
+                            <button id="runDBSCAN"><i class="fas fa-play"></i> 运行DBSCAN算法</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="card">
+                        <h2><i class="fas fa-chart-bar"></i> 分析结果</h2>
+                        <div id="statusMessage"></div>
+                        <div id="results" class="results">
+                            <div id="textResults"></div>
+                            <div id="metricsGrid" class="metrics-grid"></div>
+                            <div class="chart-container">
+                                <canvas id="resultChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 关于部分 -->
+    <section id="about" class="cta-section">
+        <div class="container">
+            <h2 class="intro-title">关于数据挖掘算法平台</h2>
+            <p class="intro-text">本平台是一个免费的数据挖掘工具，旨在帮助用户无需编程经验即可进行专业的数据分析。平台支持多种机器学习算法，提供直观的结果可视化。</p>
+            <a href="#platform" class="cta-button">开始分析数据</a>
+        </div>
+    </section>
+
+    <div class="footer">
+        <p>数据挖掘算法平台 &copy; 2023 | 学号: 2306104061 姓名: 唐旗东</p>
+    </div>
+
+    <!-- 引入外部JavaScript文件 -->
+    <script src="script.js"></script>
+</body>
+</html>
